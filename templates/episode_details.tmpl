@@ -1,0 +1,29 @@
+<h1>{{.episode.Title}}</h1>
+{{range .episode.Segments}}
+	<h2>{{.Name}}</h2>
+	{{range .Stories}}
+		<h3>{{.Presenter}}: {{.Title}}</h3>
+		{{.Notes}}
+	{{end}}
+{{end}}
+
+<h2>Dodaj newsa</h2>
+<form method="post">
+	<label for="title">Tytuł newsa:</label>
+	<input type="tekst" id="title" name="title"><br>
+	<label for="note">Dodatkowe informacje i linki:</label>
+	<textarea id="notes" name="notes" ></textarea>
+	<label for="segment">Kategoria:</label>
+	<select id="segment" name="segment">
+		{{range .episode.Segments}}
+			<option value="{{.Name}}">{{.Name}}</option>
+		{{end}}
+	</select><br>
+	<label for="presenter">Prezenter:</label>
+	<select id="presenter" name="presenter">
+		{{range .presenters}}
+			<option value="{{.}}">{{.}}</option>
+		{{end}}
+	</select><br>
+	<input type="submit" value="Dodaj"><br>
+</form>
