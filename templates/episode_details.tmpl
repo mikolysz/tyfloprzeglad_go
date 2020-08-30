@@ -3,7 +3,7 @@
 	<h2>{{.Name}}</h2>
 	{{range .Stories}}
 		<h3>{{.Presenter}}: {{.Title}}</h3>
-		{{.Notes}}
+		{{.NotesHTML}}
 	{{end}}
 {{end}}
 
@@ -12,7 +12,7 @@
 	<label for="title">Tytuł newsa:</label>
 	<input type="tekst" id="title" name="title"><br>
 	<label for="note">Dodatkowe informacje i linki:</label>
-	<textarea id="notes" name="notes" ></textarea>
+	<textarea id="notes" name="notes" cols="80" rows="5"></textarea>
 	<label for="segment">Kategoria:</label>
 	<select id="segment" name="segment">
 		{{range .episode.Segments}}

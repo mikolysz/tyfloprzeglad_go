@@ -83,7 +83,13 @@ func (c *Controller) addStory(w http.ResponseWriter, r *http.Request) {
 		Presenter: f.Get("presenter"),
 	}
 	must(c.repo.AddStory(slug, f.Get("segment"), s))
-	c.viewEpisodeDetails(w, r)
+
+	// Users complained that duplicate stories were added when refreshing the page.
+	// If you refresh after sending a post request, the request gets send again and the story gets duplicated.
+	// The browser warns you about this, but users don't read what the browser says.
+	// For that reason, we can't just display the updated page, but we need to do a redirect instead.
+	// A redirect is going to cause  a GET request , and that's what's going to be repeated after a refresh.
+	http.Redirect(w, r, "/"+slug, http.StatusSeeOther)
 }
 
 func (c *Controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
