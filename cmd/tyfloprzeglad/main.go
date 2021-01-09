@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	
+	"github.com/mikolysz/tyfloprzeglad"
 )
 
 func main() {
@@ -12,7 +14,7 @@ func main() {
 	pass := getenv("TYFLOPRZEGLAD_PASS", "pass")
 	filename := getenv("TYFLOPRZEGLAD_FILENAME", "tyfloprzeglad.json")
 
-	repo, err := NewRepo(filename)
+	repo, err := tyfloprzeglad.NewRepo(filename)
 	if err != nil {
 		log.Fatalf("Error when opening data file: %s", err)
 	}

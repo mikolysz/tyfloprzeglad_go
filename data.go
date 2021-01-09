@@ -1,4 +1,4 @@
-package main
+package tyfloprzeglad
 
 import (
 	"encoding/json"

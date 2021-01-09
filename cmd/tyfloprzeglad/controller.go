@@ -8,15 +8,17 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/markbates/pkger"
+	
+	"github.com/mikolysz/tyfloprzeglad"
 )
 
 type Controller struct {
-	repo          Repo
+	repo          tyfloprzeglad.Repo
 	r             *chi.Mux
 	list, details *view
 }
 
-func NewController(repo Repo, user, pass string) *Controller {
+func NewController(repo tyfloprzeglad.Repo, user, pass string) *Controller {
 	r := chi.NewRouter()
 
 	// If   an error occurs during a request, we panic, so we need a middleware that recovers from  such errors and tells users that something went wrong.
@@ -61,7 +63,7 @@ func (c *Controller) createEpisode(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) viewEpisodeDetails(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	e, err := c.repo.EpisodeBySlug(slug)
-	if err == ErrorNotFound {
+	if err == tyfloprzeglad.ErrorNotFound {
 		http.NotFound(w, r)
 		return
 	}
@@ -77,7 +79,7 @@ func (c *Controller) addStory(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	must(r.ParseForm())
 	f := r.PostForm
-	s := &Story{
+	s := &tyfloprzeglad.Story{
 		Title:     f.Get("title"),
 		Notes:     f.Get("notes"),
 		Presenter: f.Get("presenter"),
