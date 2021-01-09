@@ -1,4 +1,4 @@
-module github.com/devil418/tyfloprzeglad
+module github.com/mikolysz/tyfloprzeglad
 
 go 1.14
 
