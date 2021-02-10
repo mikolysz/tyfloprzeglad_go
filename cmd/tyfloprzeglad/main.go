@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	
+
 	"github.com/mikolysz/tyfloprzeglad"
 )
 

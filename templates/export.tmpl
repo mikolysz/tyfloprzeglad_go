@@ -1,0 +1,10 @@
+{{range .}}
+# {{.Title}}
+{{range .Segments}}
+## {{.Name }}
+{{range .Stories}}
+### {{.Presenter}}: {{.Title}}
+{{ .Notes }}
+{{end}}
+{{end}}
+{{end}}
