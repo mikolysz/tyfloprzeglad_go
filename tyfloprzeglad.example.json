@@ -1,0 +1,44 @@
+{
+	"Episodes": [
+		{
+			"Title": "test episode",
+			"Slug": "test-episode",
+			"Segments": [
+				{
+					"Name": "segment1",
+					"Stories": [
+						{
+							"Title": "foo's story",
+							"Notes": "google.com",
+							"Presenter": "foo"
+						},
+						{
+							"Title": "Bar's story",
+							"Notes": "",
+							"Presenter": "bar"
+						},
+						{
+							"Title": "another foo's story",
+							"Notes": "This story should not appear directly before or after the first Foo's story",
+							"Presenter": "foo"
+						}
+					]
+				},
+				{
+					"Name": "segment 2",
+					"Stories": null
+				}
+			]
+		}
+	],
+	"DefaultSegments": [
+		"segment1",
+		"segment 2"
+	],
+	"Presenters": [
+		"foo",
+		"bar",
+		"baz",
+		"quux"
+	]
+}
