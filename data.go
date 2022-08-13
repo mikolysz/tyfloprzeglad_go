@@ -32,6 +32,7 @@ type Segment struct {
 }
 
 type Story struct {
+	ID        int
 	Title     string
 	Notes     string
 	Presenter string
@@ -88,6 +89,9 @@ type Repo interface {
 	AddStory(episodeSlug string, segment string, s *Story) error
 	// Presenters returns the list of presenters available.
 	PresenterNames() []string
+
+	// migrate migrates the underlying database to the latest version if needed.
+	migrate() error
 }
 
 func NewRepo(filename string) (Repo, error) {
@@ -113,7 +117,13 @@ func newJSONRepo(filename string, next Repo) (Repo, error) {
 	if err := d.Decode(next); err != nil {
 		return nil, err
 	}
-	return &jsonRepo{filename, next}, nil
+
+	r := &jsonRepo{filename, next}
+	if err := r.migrate(); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func (r *jsonRepo) AddEpisode(title string) (*Episode, error) {
@@ -153,6 +163,7 @@ func (r *jsonRepo) Save() error {
 // repo simply stores data in memory, without any serialization or validation.
 // Such concerns are handled by outer layers.
 type repo struct {
+	DBVersion       int
 	Episodes        []*Episode
 	DefaultSegments []string
 	Presenters      []string
@@ -209,6 +220,9 @@ func (r *repo) AddStory(slug string, segment string, story *Story) error {
 		return err
 	}
 
+	// Story IDs are assigned sequentially, starting at 1.
+	// Therefore, if we have n stories, the highest assigned ID is n.
+	story.ID = len(s.Stories) + 1
 	s.addStory(story)
 	return nil
 }
@@ -316,4 +330,24 @@ func (s *Segment) insertStory(story *Story, candidates []int) {
 
 func (r *repo) PresenterNames() []string {
 	return r.Presenters
+}
+
+func (r *repo) migrate() error {
+	if r.DBVersion == 1 {
+		// Already at the latest version, no need to migrate
+		return nil
+	}
+
+	// In version 0, stories didn't have IDs, so we assign them here.
+	for _, e := range r.Episodes {
+		for _, seg := range e.Segments {
+			for i, s := range seg.Stories {
+				s.ID = i + 1
+			}
+		}
+	}
+
+	r.DBVersion = 1
+
+	return nil
 }
