@@ -35,7 +35,7 @@ func NewController(repo tyfloprzeglad.Repo, user, pass string) *Controller {
 		repo:    repo,
 		r:       r,
 		list:    newView("index"),
-		details: newView("episode_details"),
+		details: newView("episode_details", "form"),
 	}
 
 	r.Get("/", c.listEpisodes)
@@ -102,24 +102,26 @@ type view struct {
 	*template.Template
 }
 
-func newView(tmplName string) *view {
-	path := "/templates/" + tmplName + ".tmpl"
-	f, err := pkger.Open(path)
-	if err != nil {
-		panic(err)
-	}
+func newView(tmplNames ...string) *view {
+	t := template.New("main")
 
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		panic(err)
-	}
+	for _, n := range tmplNames {
+		path := "/templates/" + n + ".tmpl"
+		f, err := pkger.Open(path)
+		if err != nil {
+			panic(err)
+		}
 
-	str := string(b)
+		b, err := ioutil.ReadAll(f)
+		if err != nil {
+			panic(err)
+		}
 
-	t := template.New(tmplName)
-	return &view{
-		Template: template.Must(t.Parse(str)),
+		str := string(b)
+
+		template.Must(t.Parse(str))
 	}
+	return &view{t}
 }
 
 // must is a helper function that panics if the passed error is not nil, does nothing otherwise.
