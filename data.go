@@ -24,11 +24,29 @@ type Episode struct {
 	Segments []*Segment
 }
 
+func (e *Episode) SegmentNames() []string {
+	names := make([]string, 0, len(e.Segments))
+
+	for _, seg := range e.Segments {
+		names = append(names, seg.Name)
+	}
+	return names
+}
+
 // Segment contains stories with a particular theme for a given episode.
 // When an episode is created, a list of empty segments is populated.
 type Segment struct {
 	Name    string
 	Stories []*Story
+}
+
+func (s *Segment) StoryByID(id int) (*Story, error) {
+	for _, st := range s.Stories {
+		if st.ID == id {
+			return st, nil
+		}
+	}
+	return nil, ErrorNotFound
 }
 
 type Story struct {
@@ -92,6 +110,8 @@ type Repo interface {
 
 	// migrate migrates the underlying database to the latest version if needed.
 	migrate() error
+	// Save saves the latest repository state to disk.
+	Save() error
 }
 
 func NewRepo(filename string) (Repo, error) {
@@ -349,5 +369,9 @@ func (r *repo) migrate() error {
 
 	r.DBVersion = 1
 
+	return nil
+}
+
+func (r *repo) Save() error {
 	return nil
 }

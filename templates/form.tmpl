@@ -1,21 +1,34 @@
 {{define "form"}}
 	<form method="post">
 		<label for="title">Tytuł newsa:</label>
-		<input type="tekst" id="title" name="title"><br>
+		<input type="text" id="title" name="title" value="{{.Story.Title}}"><br>
 		<label for="note">Dodatkowe informacje i linki:</label>
-		<textarea id="notes" name="notes" cols="80" rows="5"></textarea>
-		<label for="segment">Kategoria:</label>
-		<select id="segment" name="segment">
-			{{range .episode.Segments}}
-				<option value="{{.Name}}">{{.Name}}</option>
-			{{end}}
-		</select><br>
+		<textarea id="notes" name="notes" cols="80" rows="5">{{.Story.Notes}}</textarea>
+		
+		{{if not .Editing}}
+			<label for="segment">Kategoria:</label>
+			<select id="segment" name="segment">
+				{{range .Segments}}
+					<option value="{{.}}">{{.}}</option>
+				{{end}}
+			</select><br>
+		{{end}}
+		
 		<label for="presenter">Prezenter:</label>
 		<select id="presenter" name="presenter">
-			{{range .presenters}}
-				<option value="{{.}}">{{.}}</option>
+			{{range .Presenters}}
+				<option value="{{.}}" 
+						{{if eq . $.Story.Presenter}} selected{{end}}>
+					{{.}}
+				</option>
 			{{end}}
 		</select><br>
-		<input type="submit" value="Dodaj"><br>
+
+		{{if .Editing}}
+			<input type="submit" value="Zapisz">
+		{{else}}
+			<input type="submit" value="Dodaj">
+		{{end}}
+		<br>
 	</form>
 {{end}}

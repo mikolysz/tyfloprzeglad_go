@@ -1,12 +1,13 @@
 <h1>{{.episode.Title}}</h1>
 <a href="https://zoom.us/j/513177275">Podłącz się do Zooma</a>
-{{range .episode.Segments}}
+{{range $segment_id, $segment := .episode.Segments}}
 	<h2>{{.Name}}</h2>
 	{{range .Stories}}
 		<h3>{{.Presenter}}: {{.Title}}</h3>
 		{{.NotesHTML}}
+		<a href="{{$.episode.Slug}}/{{$segment_id}}/{{.ID}}/edit">Edytuj</a>
 	{{end}}
 {{end}}
 
 <h2>Dodaj newsa</h2>
-{{template "form" .}}
+{{template "form" .storyForm}}

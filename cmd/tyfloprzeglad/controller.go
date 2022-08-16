@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -13,9 +14,9 @@ import (
 )
 
 type Controller struct {
-	repo          tyfloprzeglad.Repo
-	r             *chi.Mux
-	list, details *view
+	repo                tyfloprzeglad.Repo
+	r                   *chi.Mux
+	list, details, edit *view
 }
 
 func NewController(repo tyfloprzeglad.Repo, user, pass string) *Controller {
@@ -36,12 +37,15 @@ func NewController(repo tyfloprzeglad.Repo, user, pass string) *Controller {
 		r:       r,
 		list:    newView("index"),
 		details: newView("episode_details", "form"),
+		edit:    newView("edit", "form"),
 	}
 
 	r.Get("/", c.listEpisodes)
 	r.Post("/", c.createEpisode)
 	r.Get("/{slug}", c.viewEpisodeDetails)
 	r.Post("/{slug}", c.addStory)
+	r.Get("/{slug}/{segment_id}/{story_id}/edit", c.editStory)
+	r.Post("/{slug}/{segment_id}/{story_id}/edit", c.updateStory)
 	return c
 }
 
@@ -68,23 +72,25 @@ func (c *Controller) viewEpisodeDetails(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	must(err)
+
 	data := map[string]interface{}{
-		"episode":    e,
-		"presenters": c.repo.PresenterNames(),
+		"episode": e,
+		"storyForm": storyForm{
+			Story:      &tyfloprzeglad.Story{},
+			Presenters: c.repo.PresenterNames(),
+			Segments:   e.SegmentNames(),
+		},
 	}
 	must(c.details.Execute(w, data))
 }
 
 func (c *Controller) addStory(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
-	must(r.ParseForm())
-	f := r.PostForm
-	s := &tyfloprzeglad.Story{
-		Title:     f.Get("title"),
-		Notes:     f.Get("notes"),
-		Presenter: f.Get("presenter"),
-	}
-	must(c.repo.AddStory(slug, f.Get("segment"), s))
+
+	s, segment, err := parseStoryForm(r)
+	must(err)
+
+	must(c.repo.AddStory(slug, segment, s))
 
 	// Users complained that duplicate stories were added when refreshing the page.
 	// If you refresh after sending a post request, the request gets send again and the story gets duplicated.
@@ -92,6 +98,80 @@ func (c *Controller) addStory(w http.ResponseWriter, r *http.Request) {
 	// For that reason, we can't just display the updated page, but we need to do a redirect instead.
 	// A redirect is going to cause  a GET request , and that's what's going to be repeated after a refresh.
 	http.Redirect(w, r, "/"+slug, http.StatusSeeOther)
+}
+
+func (c *Controller) editStory(w http.ResponseWriter, r *http.Request) {
+	s, err := c.fetchStoryForEditing(r)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	f := storyForm{
+		Editing:    true,
+		Story:      s,
+		Presenters: c.repo.PresenterNames(),
+	}
+
+	c.edit.Execute(w, f)
+}
+
+func (c *Controller) updateStory(w http.ResponseWriter, r *http.Request) {
+	s, err := c.fetchStoryForEditing(r)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// We currently can't change a story's segment, so we just discard that information.
+	new, _, err := parseStoryForm(r)
+	if err != nil {
+		http.NotFound(w, r)
+	}
+
+	s.Title = new.Title
+	s.Notes = new.Notes
+	s.Presenter = new.Presenter
+
+	c.repo.Save()
+	http.Redirect(w, r, "/"+chi.URLParam(r, "slug"), http.StatusSeeOther)
+}
+
+func (c *Controller) fetchStoryForEditing(r *http.Request) (s *tyfloprzeglad.Story, err error) {
+	// Parse request params
+	var (
+		slug      = chi.URLParam(r, "slug")
+		segmentID = chi.URLParam(r, "segment_id")
+		storyID   = chi.URLParam(r, "story_id")
+	)
+
+	segmentIdI, err := strconv.Atoi(segmentID)
+	if err != nil {
+		return nil, err
+	}
+
+	storyIdI, err := strconv.Atoi(storyID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve the story to be edited
+	e, err := c.repo.EpisodeBySlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(e.Segments) < segmentIdI {
+		return nil, err
+	}
+	seg := e.Segments[segmentIdI]
+
+	s, err = seg.StoryByID(storyIdI)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 func (c *Controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +207,6 @@ func newView(tmplNames ...string) *view {
 // must is a helper function that panics if the passed error is not nil, does nothing otherwise.
 func must(err error) {
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 }
