@@ -206,10 +206,13 @@ type view struct {
 	*template.Template
 }
 
+var defaultTemplates = []string{"layout"}
+
 func newView(tmplNames ...string) *view {
 	t := template.New("main")
+	templates := append(defaultTemplates[:], tmplNames...)
 
-	for _, n := range tmplNames {
+	for _, n := range templates {
 		path := "/templates/" + n + ".tmpl"
 		f, err := pkger.Open(path)
 		if err != nil {

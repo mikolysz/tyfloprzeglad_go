@@ -1,0 +1,11 @@
+<html lang="pl">
+	<head>
+		<title>
+			{{block "title" .}}{{end}} | TyfloPrzegląd
+		</title>
+	</head>
+	<body>
+		<h1>{{template "title" .}}</h1>
+		{{block "content" .}}{{end}}
+	</body>
+</html>

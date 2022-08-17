@@ -1,6 +1,11 @@
-<h1>Edytuj Newsa</h1>
-{{template "form" .}}
+{{define "title"}}
+	Edycja Newsa
+{{end}}
 
-<form method="post" action="delete">
-	<input type="submit" value="Usuń">
-</form>
+{{define "content"}}
+	{{template "form" .}}
+
+	<form method="post" action="delete">
+		<input type="submit" value="Usuń">
+	</form>
+{{end}}

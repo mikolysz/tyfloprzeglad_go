@@ -1,14 +1,18 @@
-<h1>Lista audycji</h1>
-<ul>
-	{{range .}}
-		<li><a href="{{.Slug}}">{{.Title}}</a></li>
-	{{end}}
-</ul>
+{{define "title"}}
+	Lista Audycji
+{{end}}
 
-<h2>Utwórz nową audycję</h2>
-<form method="post">
-	<label for="title">Nazwa:</label>
-	<input type="text" name="title" id="title" placeholder="Audycja 123"><br>
-	<input type="submit" value="Utwórz">
-</form>
+{{define "content"}}
+	<ul>
+		{{range .}}
+			<li><a href="{{.Slug}}">{{.Title}}</a></li>
+		{{end}}
+	</ul>	
 
+	<h2>Utwórz nową audycję</h2>
+	<form method="post">
+		<label for="title">Nazwa:</label>
+		<input type="text" name="title" id="title" placeholder="Audycja 123"><br>
+		<input type="submit" value="Utwórz">
+	</form>
+{{end}}
