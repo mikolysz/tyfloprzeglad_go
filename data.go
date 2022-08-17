@@ -112,6 +112,9 @@ type Repo interface {
 	migrate() error
 	// Save saves the latest repository state to disk.
 	Save() error
+
+	// DeleteStory deletes a story from the repo.
+	DeleteStory(slug string, segmentID int, storyID int) error
 }
 
 func NewRepo(filename string) (Repo, error) {
@@ -178,6 +181,17 @@ func (r *jsonRepo) Save() error {
 	d := json.NewEncoder(f)
 	d.SetIndent("", "	")
 	return d.Encode(r.Repo)
+}
+
+func (r *jsonRepo) deleteStory(slug string, segmentID int, storyID int) error {
+	if err := r.Repo.DeleteStory(slug, segmentID, storyID); err != nil {
+		return err
+	}
+
+	if err := r.Save(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // repo simply stores data in memory, without any serialization or validation.
@@ -373,5 +387,26 @@ func (r *repo) migrate() error {
 }
 
 func (r *repo) Save() error {
+	return nil
+}
+
+func (r *repo) DeleteStory(slug string, segmentID int, storyID int) error {
+	e, err := r.EpisodeBySlug(slug)
+	if err != nil {
+		return err
+	}
+
+	if len(e.Segments) < segmentID {
+		return ErrorNotFound
+	}
+	seg := e.Segments[segmentID]
+
+	for i, s := range seg.Stories {
+		if s.ID == storyID {
+			println("story")
+			seg.Stories = append(seg.Stories[:i], seg.Stories[i+1:]...)
+			return nil
+		}
+	}
 	return nil
 }

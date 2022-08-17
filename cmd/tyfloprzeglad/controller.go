@@ -46,6 +46,8 @@ func NewController(repo tyfloprzeglad.Repo, user, pass string) *Controller {
 	r.Post("/{slug}", c.addStory)
 	r.Get("/{slug}/{segment_id}/{story_id}/edit", c.editStory)
 	r.Post("/{slug}/{segment_id}/{story_id}/edit", c.updateStory)
+	r.Post("/{slug}/{segment_id}/{story_id}/delete", c.deleteStory)
+
 	return c
 }
 
@@ -172,6 +174,28 @@ func (c *Controller) fetchStoryForEditing(r *http.Request) (s *tyfloprzeglad.Sto
 	}
 
 	return s, nil
+}
+
+func (c *Controller) deleteStory(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	segmentID, err := strconv.Atoi(chi.URLParam(r, "segment_id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	storyID, err := strconv.Atoi(chi.URLParam(r, "story_id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := c.repo.DeleteStory(slug, segmentID, storyID); err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	http.Redirect(w, r, "/"+slug, http.StatusSeeOther)
 }
 
 func (c *Controller) ServeHTTP(w http.ResponseWriter, r *http.Request) {
