@@ -36,8 +36,9 @@ func (e *Episode) SegmentNames() []string {
 // Segment contains stories with a particular theme for a given episode.
 // When an episode is created, a list of empty segments is populated.
 type Segment struct {
-	Name    string
-	Stories []*Story
+	Name        string
+	Stories     []*Story
+	LastStoryID int
 }
 
 func (s *Segment) StoryByID(id int) (*Story, error) {
@@ -254,9 +255,9 @@ func (r *repo) AddStory(slug string, segment string, story *Story) error {
 		return err
 	}
 
-	// Story IDs are assigned sequentially, starting at 1.
-	// Therefore, if we have n stories, the highest assigned ID is n.
-	story.ID = len(s.Stories) + 1
+	s.LastStoryID++
+	story.ID = s.LastStoryID
+
 	s.addStory(story)
 	return nil
 }
@@ -378,6 +379,7 @@ func (r *repo) migrate() error {
 			for i, s := range seg.Stories {
 				s.ID = i + 1
 			}
+			seg.LastStoryID = len(seg.Stories)
 		}
 	}
 
